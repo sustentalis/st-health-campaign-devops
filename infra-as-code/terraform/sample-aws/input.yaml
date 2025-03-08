@@ -1,13 +1,13 @@
 # Replace with the name which you want to give to your EKS cluster
 # Cluster name can have only lowercase alphanumeric characters and hyphens
 # For example: "digit-demo"
-cluster_name: "testhealth-k8supgrade"
+cluster_name: "sustentalis-cl1"
 
 # Replace with ssh key name you want
 ssh_key_name: "testhealth-k8supgrade-ssh-key" 
 
 # Replace with public key which you want to add in your EC2 machines # ssh key which you want to add in your EC2 machines
-public_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCHcOtwON5v3csYdki9DW1n2BkC2GmzeD86rTkCKSu9GWQOw8PdGabMfppvvjYlmOLlu+WzhM6+eHUXhtS6FaMert71oHUh/mvzb3KC4VJ1ZhpZXMyvbqV2RoOyrseUqwShaTfaH+BypFBaZm52tP1gzfAzSY68UWiQnUXhiNBBfjHhFbfnehEDeN0VZSiH1L27n8Ng2S6xLwZ8ovCOBukJuQ9Q0c5LqV4Nu6YYSERE0qMIDHIM7qvDWMsv8WOe32uBrUW99Tp9+Y0EAnylfS/FvnEh0zT1h5cRjoXYOOOQ0b4eR8qBbY4Zwod2ZKZ8mfzvkUci3qAp4AfLEWYkUe9x"
+public_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCLCnoHoFNiiDfQihOWL6RCEjCTW/bLc//2DCQSC11vvarT9wS5wMyMmARbvfkb9gJrSiTAPT5m1kk/qVkGqWGT5ULptkD8fotFBHt+hCDomONw/MvuqhaTOOWp3GRKJ7KCVVOdC61TEzDhJjYgn1Y/Sbr8FTdBa8//A1x57pR5jtUwtJIlk5b/jgUBQMJMD5zPA/Tef9H1DWCO2S5b6BbW92+nwocO8UNP1TF1/h1gi/oLb+CIYzbZN3rJ5kyjeHuBvyUCUKD3vubK7cgbCIbZyNABTsz3F0dFkDJFAoW9F8e0eR3737nQPCfsq/8yJsU0HdsQ1wjGp+aYPAPV9TiB"
 
 # Name you want to give to your Database
 # DB name must contain only alphanumeric characters
@@ -18,7 +18,7 @@ db_name: "testhealthdb"
 db_username: "testhealth" 
 
 # Replace with Domain name you want for your web applications
-domain_name: "hcm-console.digit.org"
+domain_name: "hcm-console.ecoensina.tech"
 
 # Replace with the name you want to give to your S3 bucket which is used to store the terraform states
-terraform_state_bucket_name: "testhealth-k8supgrade-digit-buckets"
+terraform_state_bucket_name: "sustentalis-cl1-buckets"
