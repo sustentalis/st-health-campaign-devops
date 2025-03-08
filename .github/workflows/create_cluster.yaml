@@ -262,7 +262,7 @@ jobs:
           chmod +x sops-v3.7.1.linux
           sudo mv sops-v3.7.1.linux /usr/local/bin/sops            
       - name: digit deployment
-        run: go run digit_installer.go
+        run: go run digit_installer.go --debug
         working-directory: deploy-as-code/deployer 
       - name: Displaying the Loadbalancer ID
         run: |
