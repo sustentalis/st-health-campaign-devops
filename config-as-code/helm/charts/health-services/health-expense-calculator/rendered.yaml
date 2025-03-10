@@ -1,0 +1,273 @@
+---
+# Source: health-expense-calculator/templates/service.yaml
+# service.yaml---
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-expense-calculator
+  namespace: egov  
+  annotations: 
+    zuul/route-path: health-expense-calculator 
+  labels:
+    app: health-expense-calculator      
+    group: health   
+spec:
+  selector:
+    app: health-expense-calculator      
+    group: health    
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+# Source: health-expense-calculator/templates/deployment.yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-expense-calculator
+  namespace: egov
+  labels:
+    app: health-expense-calculator      
+    group: health   
+spec:
+  selector:
+    matchLabels:
+      app: health-expense-calculator      
+      group: health
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0     
+  replicas: 1
+  template:
+    metadata:  
+      annotations:      
+        deployment-timestamp: "20250310091626"        
+      labels:
+        app: health-expense-calculator      
+        group: health            
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              labelSelector:
+                matchLabels:
+                  app: health-expense-calculator      
+                  group: health     
+      initContainers:
+      
+      - name: "db-migration"
+        image: egovio/health-expense-calculator-db:1.0
+        imagePullPolicy: IfNotPresent               
+        env:
+            - name: "DB_URL"
+              valueFrom: 
+                configMapKeyRef: 
+                  name: egov-config
+                  key: db-url
+            - name: "SCHEMA_TABLE"
+              value: "expense_calculator_schema"              
+            - name: "FLYWAY_USER"
+              valueFrom: 
+                secretKeyRef: 
+                    name: db
+                    key: flyway-username
+            - name: "FLYWAY_PASSWORD"
+              valueFrom:
+                secretKeyRef: 
+                    name: db
+                    key: flyway-password
+            - name: "FLYWAY_LOCATIONS"
+              valueFrom: 
+                configMapKeyRef: 
+                    name: egov-config
+                    key: flyway-locations
+              
+      imagePullSecrets:
+        - name: docker-registry-secret            
+      containers:      
+        - name: health-expense-calculator
+          image: egovio/health-expense-calculator:1.0
+          imagePullPolicy: IfNotPresent             
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP              
+          readinessProbe:
+            httpGet:
+                path: "/health-expense-calculator/health"
+                port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5        
+             
+          livenessProbe:
+            httpGet:
+                path: "/health-expense-calculator/health"
+                port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 5
+            
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - sh
+                - -c
+                - sleep 10                         
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: JAVA_OPTS
+              value: "-Xmx256m -Xms256m"
+            - name: JAVA_ARGS
+              value: ""
+            - name: SERVER_CONTEXT_PATH
+              value: /health-expense-calculator
+            - name: SERVER_SERVLET_CONTEXT-PATH
+              value: /health-expense-calculator
+            - name: EXPENSE_CALCULATOR_CONSUME_TOPIC
+              value: "calculate-musterroll-health"
+            - name: EXPENSE_CALCULATOR_ERROR_TOPIC
+              value: "calculate-error-health"
+            - name: EXPENSE_CALCULATOR_CREATE_BILL_TOPIC
+              value: "calculate-billmeta-health"
+            - name: EGOV_MUSTERROLL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: health-muster-roll
+            - name: EGOV_BILL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: health-expense
+            - name: EGOV_MDMS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: egov-mdms-service
+            - name: EGOV_MDMS_SEARCH_ENDPOINT
+              value: "egov-mdms-service/v1/_search"      
+            - name: EGOV_IDGEN_HOST
+              valueFrom: 
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: egov-idgen
+            - name: EGOV_INDIVIDUAL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: individual
+            - name: EGOV_MDMS_V2_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: mdms-service-v2
+            - name: EGOV_MDMS_SEARCH_V2_ENDPOINT
+              value: "mdms-v2/v1/_search"   
+            - name: WORKS_ATTENDANCE_LOG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: health-attendance
+            - name: EGOV_BOUNDARY_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: boundary-service
+            - name: PROJECT_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: project
+            - name: PROJECT_SEARCH_PATH
+              value: "project/v1/_search"
+            - name: EGOV_FILESTORE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: egov-filestore
+            - name: EGOV_PDF_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: pdf-service
+            - name: EXPENSE_BILLING_BILL_CREATE
+              value: "expense-bill-create-health"
+            - name: EGOV_LOCALIZATION_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: egov-service-host
+                  key: egov-localization
+            - name: SPRING_DATA_REDIS_HOST
+              value: redis.backbone
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
+            - name: EGOV_MUSTERROLL_SEARCH_ENDPOINT 
+              value:  
+            - name: IS_HEALTH_CONTEXT_ENABLED
+              value: "true"
+            - name: EGOV_INDIVIDUAL_SEARCH_ENDPOINT
+              value: "/individual/v1/_search"
+            - name: EGOV_FILESTORE_PATH
+              value: "/filestore/v1/files"
+            
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            
+            - name: JAEGER_AGENT_HOST
+              value: "jaeger"
+            - name: JAEGER_SAMPLER_TYPE
+              value: "const"
+            - name: JAEGER_SAMPLER_PARAM
+              value: "1"                                     
+          resources:
+            requests:
+              memory: "512Mi"
+            limits:
+              memory: "512Mi"
+---
+# Source: health-expense-calculator/templates/ingress.yaml
+# ingress.yaml---
+apiVersion: networking.k8s.io/v1 
+kind: Ingress
+metadata:
+  name: health-expense-calculator
+  namespace: egov     
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/lua-resty-waf: active
+    nginx.ingress.kubernetes.io/lua-resty-waf-allow-unknown-content-types: "true"
+    nginx.ingress.kubernetes.io/lua-resty-waf-debug: "true"
+    nginx.ingress.kubernetes.io/lua-resty-waf-process-multipart-body: "false"
+    nginx.ingress.kubernetes.io/lua-resty-waf-score-threshold: "10" 
+  labels:
+    app: health-expense-calculator      
+    group: health                            
+spec:
+  rules:  
+  - host:   
+    http:
+      paths:
+      - backend:          
+          service:
+            name: zuul
+            port:
+              number: 8080
+            
+        path: /health-expense-calculator
+        pathType: Prefix        
+  tls:      
+  - hosts:
+    - 
+    secretName: -tls-certs

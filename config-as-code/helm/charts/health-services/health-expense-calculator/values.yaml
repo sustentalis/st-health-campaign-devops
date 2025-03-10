@@ -19,10 +19,12 @@ initContainers:
     schemaTable: "expense_calculator_schema"
     image:
       repository: "health-expense-calculator-db"
+      tag: "1.0"
 
 # Container Configs
 image:
   repository: "health-expense-calculator"
+  tag: "1.0"
 replicas: "1"
 healthChecks:
   enabled: true
@@ -196,7 +198,18 @@ env: |
     value: {{ index .Values "egov-musterroll-search-endpoint" | quote }} 
   - name: IS_HEALTH_CONTEXT_ENABLED
     value: "true"
-  - EGOV_INDIVIDUAL_SEARCH_ENDPOINT
+  - name: EGOV_INDIVIDUAL_SEARCH_ENDPOINT
     value: "/individual/v1/_search"
-  - EGOV_FILESTORE_PATH
+  - name: EGOV_FILESTORE_PATH
     value: "/filestore/v1/files"
+extraEnv:
+  java: |
+    - name: SPRING_PROFILES_ACTIVE
+      value: "prod"
+  jaeger: |
+    - name: JAEGER_AGENT_HOST
+      value: "jaeger"
+    - name: JAEGER_SAMPLER_TYPE
+      value: "const"
+    - name: JAEGER_SAMPLER_PARAM
+      value: "1"
